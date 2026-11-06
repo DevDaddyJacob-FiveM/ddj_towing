@@ -4,7 +4,7 @@ game "gta5"
 use_experimental_fxv2_oal "yes"
 
 author "DevDaddyJacob"
-description "A FiveM script which adds tow trucks"
+description "A FiveM script which adds the ability to enhance tow truck operation"
 version "0.1.0"
 
 dependencies {
