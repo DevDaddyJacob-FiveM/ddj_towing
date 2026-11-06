@@ -24,5 +24,6 @@ client_scripts {
 	"client/classes/scoopBased.lua",
 	"client/classes/propBased.lua",
 	"client/ropes.lua",
+	"client/cleanup.lua",
 	"client/main.lua",
 }

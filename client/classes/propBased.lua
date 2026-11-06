@@ -510,6 +510,12 @@ end
                 self:AttachBedToTruck(self.config.bedOffsets.raised.pos, self.config.bedOffsets.raised.rot, true)
                 SetVehicleExtra(self.truckHandle, 1, not false)
                 SetEntityCollision(bedHandle, true, true)
+
+                -- Tag the bed with its owning truck so the orphan cleanup
+                -- thread (client/cleanup.lua) can find and remove it if the
+                -- truck is ever deleted without going through Destroy().
+                SetEntityAsMissionEntity(bedHandle, true, true)
+                Entity(bedHandle).state:set("DevJacob:Towing:OwnerTruck", self.truckNetId, true)
             end
     
             return bedNetId
