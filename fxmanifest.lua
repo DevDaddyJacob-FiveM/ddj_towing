@@ -4,12 +4,18 @@ game "gta5"
 use_experimental_fxv2_oal "yes"
 
 author "DevDaddyJacob"
-description "A FiveM script which adds tow truck "
+description "A FiveM script which adds tow trucks"
 version "0.1.0"
 
+dependencies {
+	"ddj_lib", -- version >= 1.4.0
+}
+
 shared_scripts {
+	"@ddj_lib/shared/logging.lua",
+
+	"config.lua",
 	"shared/utils.lua",
-	"shared/config.lua",
 }
 
 client_scripts {

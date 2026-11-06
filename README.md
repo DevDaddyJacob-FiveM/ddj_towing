@@ -1,8 +1,8 @@
-# Tow Trucks Towing
+# Towing
 TBD
 
 ## Installation
-Installing the resource is simple, just download the latest version from the [releases](https://github.com/DevDaddyJacob-FiveM/ddj_tow_trucks/releases/latest) tab, place the folder into your FiveM resources folder and then add `ensure ddj_tow_trucks` to your server.cfg file.
+Installing the resource is simple, just download the latest version from the [releases](https://github.com/DevDaddyJacob-FiveM/ddj_towing/releases/latest) tab, place the folder into your FiveM resources folder and then add `ensure ddj_towing` to your server.cfg file.
 
 ## Configuration
 All of the configuration and documentation for it can be found in the [config.lua](./config.lua) file.

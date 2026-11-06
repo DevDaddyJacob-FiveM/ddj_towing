@@ -54,34 +54,39 @@ function PropTowTruck.new(truckConfig, truckHandle)
 end
 
 function PropTowTruck.ValidateConfig(truckCfg)
-    if truckCfg == nil then return nil end
-    if TowTruck.ParseType(truckCfg.truckType) ~= TowTruck.TYPE.PROP_BASED then return nil end
+    if nil == truckCfg then
+        return nil
+    end
+
+    if TowTruck.ParseType(truckCfg.truckType) ~= TowTruck.TYPE.PROP_BASED then
+        return nil
+    end
 
     local newConfigTable = {}
     local defaultCfg = {
-		lerpMult = 4.0,
-		controlBoxOffset = vector3(-1.05, -1.0, 0.0),
-		hookRootOffset = vector3(0.025, 4.5, 0.1),
-		bedAttachOffset = vector3(0.0, 1.5, 0.3),
-		bedOffsets = {
-			raised = {
-				pos = vector3(0.0, -3.8, 0.45),
-				rot = vector3(0.0, 0.0, 0.0),
-			},
-			back = {
-				pos = vector3(0.0, -4.0, 0.0),
-				rot = vector3(0.0, 0.0, 0.0),
-			},
-			lowered = {
-				pos = vector3(0.0, -0.4, -1.0),
-				rot = vector3(12.0, 0.0, 0.0),
-			},
-		},
+        lerpMult = 4.0,
+        controlBoxOffset = vector3(-1.05, -1.0, 0.0),
+        hookRootOffset = vector3(0.025, 4.5, 0.1),
+        bedAttachOffset = vector3(0.0, 1.5, 0.3),
+        bedOffsets = {
+            raised = {
+                pos = vector3(0.0, -3.8, 0.45),
+                rot = vector3(0.0, 0.0, 0.0),
+            },
+            back = {
+                pos = vector3(0.0, -4.0, 0.0),
+                rot = vector3(0.0, 0.0, 0.0),
+            },
+            lowered = {
+                pos = vector3(0.0, -0.4, -1.0),
+                rot = vector3(12.0, 0.0, 0.0),
+            },
+        },
     }
     
     local getValue = function(key, cfg)
         local _cfg = cfg or truckCfg
-        if _cfg[key] ~= nil then
+        if nil ~= _cfg[key] then
             return _cfg[key]
         else
             return defaultCfg[key]
@@ -150,7 +155,7 @@ end
                     if DoesEntityExist(newHandle) then
                         towTruck.bedHandle = newHandle
                     else
-                        Logger.Error("Couldn't recreate the bed object, life cycle thread exiting!")
+                        logger:error("Couldn't recreate the bed object, life cycle thread exiting!")
                         break
                     end
                 end
@@ -179,7 +184,7 @@ end
                 towTruck:Thread_ProcessUnhookVeh(sharedData)
                 
                 -- Handle starting hook thread
-                if towTruck.hookThread == false and sharedData.isHookInUse and IsEntityAttachedToEntity(sharedData.playerPed, towTruck.hookPropHandle) == 1 then
+                if false == towTruck.hookThread and sharedData.isHookInUse and 1 == IsEntityAttachedToEntity(sharedData.playerPed, towTruck.hookPropHandle) then
                     -- Handle attaching to vehicles
                     Citizen.CreateThread(PropTowTruck.GetHookThread(towTruck))
                 end
@@ -220,7 +225,7 @@ end
         if 
             not data.isUsingControls 
             or not data.isCarHooked 
-            or (self.towingCarHandle ~= nil and IsEntityAttachedToEntity(self.bedHandle, self.towingCarHandle))
+            or (nil ~= self.towingCarHandle and IsEntityAttachedToEntity(self.bedHandle, self.towingCarHandle))
         then
             return
         end
@@ -307,7 +312,7 @@ end
     end
 
     function PropTowTruck:Thread_ProcessUnhookVeh(data)
-        if not data.isCarHooked or self.hookRopeHandle == nil then
+        if not data.isCarHooked or nil == self.hookRopeHandle then
             return 
         end
         
@@ -332,7 +337,7 @@ end
     end
 
     function PropTowTruck:Thread_DrawDebugUi()
-        if Config["DebugMode"] ~= true then
+        if true ~= Config["DebugMode"] then
             return
         end
 
@@ -360,7 +365,7 @@ end
         drawAlignedText(0.02, "Tow Truck Action: " .. self:GetAction())
 
 
-        if self.towingCarHandle ~= nil then
+        if nil ~= self.towingCarHandle then
             drawAlignedText(0.02, " ")
             drawAlignedText(0.02, "Towing Car Rot: " .. GetEntityRotation(self.towingCarHandle, 2))
 
@@ -402,33 +407,33 @@ end
 -- ##################################
 
     function PropTowTruck:Destroy(deleteVehicle)
-        if self.bedHandle ~= nil and DoesEntityExist(self.bedHandle) then
+        if nil ~= self.bedHandle and DoesEntityExist(self.bedHandle) then
             DeleteEntity(self.bedHandle)
             self.bedHandle = nil
         end
-    
-        if self.remotePropHandle ~= nil and DoesEntityExist(self.remotePropHandle) then
+
+        if nil ~= self.remotePropHandle and DoesEntityExist(self.remotePropHandle) then
             DeleteEntity(self.remotePropHandle)
             self.remotePropHandle = nil
         end
-        
-        if self.remoteRopeHandle ~= nil and DoesRopeExist(self.remoteRopeHandle) then
+
+        if nil ~= self.remoteRopeHandle and DoesRopeExist(self.remoteRopeHandle) then
             DeleteRope(self.remoteRopeHandle)
             towTruck:SetRopeData(nil)
             self.remoteRopeHandle = nil
         end
-        
-        if self.hookPropHandle ~= nil and DoesEntityExist(self.hookPropHandle) then
+
+        if nil ~= self.hookPropHandle and DoesEntityExist(self.hookPropHandle) then
             DeleteEntity(self.hookPropHandle)
             self.hookPropHandle = nil
         end
-        
-        if self.hookRopeHandle ~= nil and DoesRopeExist(self.hookRopeHandle) then
+
+        if nil ~= self.hookRopeHandle and DoesRopeExist(self.hookRopeHandle) then
             DeleteRope(self.hookRopeHandle)
             self.hookRopeHandle = nil
         end
-    
-        if deleteVehicle == true and self.truckHandle ~= nil and DoesEntityExist(self.truckHandle) then
+
+        if true == deleteVehicle and nil ~= self.truckHandle and DoesEntityExist(self.truckHandle) then
             DeleteEntity(self.truckHandle)
             self.truckHandle = nil
         end
@@ -464,11 +469,11 @@ end
     end
 
     function PropTowTruck:GetBoneIndexByName(name)
-        if self.cache.boneIndexes == nil then
+        if nil == self.cache.boneIndexes then
             self.cache.boneIndexes = {}
         end
-    
-        if self.cache.boneIndexes[name] ~= nil then
+
+        if nil ~= self.cache.boneIndexes[name] then
             return self.cache.boneIndexes[name]
         end
     
@@ -492,10 +497,10 @@ end
     end
 
     function PropTowTruck:GetBedNetId()
-        local bagValue = Entity(self.truckHandle).state["DevJacob_Tow:SummonedBed"]
-        
-        if bagValue == nil then
-    
+        local bagValue = Entity(self.truckHandle).state["DevJacob:Towing:SummonedBed"]
+
+        if nil == bagValue then
+
             -- Create the bed
             local _1, _4, _3, pos = GetEntityMatrix(self.truckHandle)
             local bedHandle = CreateObjectNoOffset(self.config.bedModel, pos, true, 0, 1)
@@ -514,7 +519,7 @@ end
     end
     
     function PropTowTruck:SetBedNetId(objNetId)
-        Entity(self.truckHandle).state:set("DevJacob_Tow:SummonedBed", objNetId, true)
+        Entity(self.truckHandle).state:set("DevJacob:Towing:SummonedBed", objNetId, true)
         self.bedHandle = NetToObj(objNetId)
     end
 
@@ -529,9 +534,9 @@ end
 -- ###################################
 
     function PropTowTruck:GetState()
-        local bagValue = Entity(self.truckHandle).state["DevJacob_Tow:State"]
-        
-        if bagValue == nil then
+        local bagValue = Entity(self.truckHandle).state["DevJacob:Towing:State"]
+
+        if nil == bagValue then
             self:SetState(PropTowTruck.STATE.NONE)
             return PropTowTruck.STATE.NONE
         end
@@ -540,7 +545,7 @@ end
     end
 
     function PropTowTruck:SetState(state)
-        Entity(self.truckHandle).state:set("DevJacob_Tow:State", state, true)
+        Entity(self.truckHandle).state:set("DevJacob:Towing:State", state, true)
     end
 
 -- #################################
@@ -554,9 +559,9 @@ end
 -- ####################################
 
     function PropTowTruck:GetAction()
-        local bagValue = Entity(self.truckHandle).state["DevJacob_Tow:Action"]
-        
-        if bagValue == nil then
+        local bagValue = Entity(self.truckHandle).state["DevJacob:Towing:Action"]
+
+        if nil == bagValue then
             self:SetAction(TowTruck.ACTION.NONE)
             return TowTruck.ACTION.NONE
         end
@@ -565,7 +570,7 @@ end
     end
 
     function PropTowTruck:SetAction(action)
-        Entity(self.truckHandle).state:set("DevJacob_Tow:Action", action, true)
+        Entity(self.truckHandle).state:set("DevJacob:Towing:Action", action, true)
     end
 
 -- ##################################
@@ -582,18 +587,18 @@ end
         local data = self.prompts.bedControls
         local prompts = {}
         
-        if data["controlBed"] == true then
+        if true == data["controlBed"] then
             prompts[#prompts + 1] = ("Press ~%s~ to raise bed"):format(toInputString("+towingBedRaise"))
             prompts[#prompts + 1] = ("Press ~%s~ to lower bed"):format(toInputString("+towingBedLower"))
         end
 
-        if #prompts == 0 then 
+        if 0 == #prompts then
             return
         end
 
         BeginTextCommandDisplayHelp("STRING")
-        AddTextEntry("DevJacob_Tow:BedControls", table.concat(prompts, "~n~"))
-        AddTextComponentSubstringTextLabel("DevJacob_Tow:BedControls")
+        AddTextEntry("DevJacob:Towing:BedControls", table.concat(prompts, "~n~"))
+        AddTextComponentSubstringTextLabel("DevJacob:Towing:BedControls")
         EndTextCommandDisplayHelp(0, 0, 1, -1)
 
         -- Reset the active prompts
@@ -606,40 +611,40 @@ end
         local data = self.prompts.winchControls
         local prompts = {}
         
-        if data["cannotAttach"] == true then
+        if true == data["cannotAttach"] then
             prompts[#prompts + 1] = "Cannot attach hook to that!"
-        elseif data["attachToVehicle"] == true then
+        elseif true == data["attachToVehicle"] then
             prompts[#prompts + 1] = "Press ~INPUT_CONTEXT~ to attach hook to vehicle"
         end
 
-        if data["grabHook"] == true then
+        if true == data["grabHook"] then
             prompts[#prompts + 1] = "Press ~INPUT_CONTEXT~ to grab hook"
-        elseif data["storeHook"] == true then
+        elseif true == data["storeHook"] then
             prompts[#prompts + 1] = "Press ~INPUT_CONTEXT~ to store hook"
         end
 
-        if data["strapVehicle"] == true then
+        if true == data["strapVehicle"] then
             prompts[#prompts + 1] = "Press ~INPUT_CONTEXT~ to strap down vehicle"
-        elseif data["unStrapVehicle"] == true then
+        elseif true == data["unStrapVehicle"] then
             prompts[#prompts + 1] = "Press ~INPUT_CONTEXT~ to unstrap vehicle"
         end
 
-        if data["controlWinch"] == true then
+        if true == data["controlWinch"] then
             prompts[#prompts + 1] = "Press ~INPUT_CONTEXT~ to wind winch"
             prompts[#prompts + 1] = "Press ~INPUT_CONTEXT_SECONDARY~ to unwind winch"
         end
 
-        if data["unHookVehicle"] == true then
+        if true == data["unHookVehicle"] then
             prompts[#prompts + 1] = "Press ~INPUT_CONTEXT_SECONDARY~ to unhook the vehicle"
         end
 
-        if #prompts == 0 then 
+        if 0 == #prompts then
             return
         end
 
         BeginTextCommandDisplayHelp("STRING")
-        AddTextEntry("DevJacob_Tow:WinchControls", table.concat(prompts, "~n~"))
-        AddTextComponentSubstringTextLabel("DevJacob_Tow:WinchControls")
+        AddTextEntry("DevJacob:Towing:WinchControls", table.concat(prompts, "~n~"))
+        AddTextComponentSubstringTextLabel("DevJacob:Towing:WinchControls")
         EndTextCommandDisplayHelp(0, 0, 0, -1)
 
         -- Reset the active prompts
@@ -671,7 +676,7 @@ end
 -- ##########################################
 
     function PropTowTruck:CanControlBed()
-        return self.cache.canControlBed == true
+        return true == self.cache.canControlBed
     end
 
     function PropTowTruck:LowerBed()
@@ -812,7 +817,7 @@ end
 
     function PropTowTruck.GetHookThread(towTruck)
         local threadFunc = function()
-            if towTruck.hookThread == true then
+            if true == towTruck.hookThread then
                 return
             end
     
@@ -825,7 +830,7 @@ end
             -- Cast Thread
             local castThread = true
             Citizen.CreateThread(function()
-                while towTruck:IsHookInUse() and IsEntityAttachedToEntity(playerPed, towTruck.hookPropHandle) == 1 do
+                while towTruck:IsHookInUse() and 1 == IsEntityAttachedToEntity(playerPed, towTruck.hookPropHandle) do
                     Citizen.Wait(0)
                     
                     local camCoords = GetFinalRenderedCamCoord()
@@ -856,11 +861,11 @@ end
             -- Draw & Process Thread
             local processThread = true
             Citizen.CreateThread(function()
-                while towTruck:IsHookInUse() and IsEntityAttachedToEntity(playerPed, towTruck.hookPropHandle) == 1 do
+                while towTruck:IsHookInUse() and 1 == IsEntityAttachedToEntity(playerPed, towTruck.hookPropHandle) do
                     Citizen.Wait(0)
                         
-                    if lastCastResult ~= nil then
-                        local canAttach = lastCastResult.hit and lastCastResult.entityHit ~= nil and DoesEntityExist(lastCastResult.entityHit) 
+                    if nil ~= lastCastResult then
+                        local canAttach = lastCastResult.hit and nil ~= lastCastResult.entityHit and DoesEntityExist(lastCastResult.entityHit)
                             and IsEntityAVehicle(lastCastResult.entityHit) and lastCastResult.entityHit ~= towTruck.truckHandle
                         local endRgb = ternary(canAttach, { r = 0, g = 255, b = 0 }, { r = 255, g = 0, b = 0 })
                     
@@ -875,13 +880,13 @@ end
                         if canAttach and IsControlJustPressed(0, 51) then
     
                             -- Delete the hook prop
-                            if towTruck.hookPropHandle ~= nil and DoesEntityExist(towTruck.hookPropHandle) then
+                            if nil ~= towTruck.hookPropHandle and DoesEntityExist(towTruck.hookPropHandle) then
                                 DeleteEntity(towTruck.hookPropHandle)
                                 towTruck.hookPropHandle = nil
                             end
-                            
+
                             -- Delete the hook rope
-                            if towTruck.hookRopeHandle ~= nil and DoesRopeExist(towTruck.hookRopeHandle) then
+                            if nil ~= towTruck.hookRopeHandle and DoesRopeExist(towTruck.hookRopeHandle) then
                                 DeleteRope(towTruck.hookRopeHandle)
                                 towTruck:SetRopeData(nil)
                                 towTruck.hookRopeHandle = nil
@@ -967,7 +972,7 @@ end
     end
 
     function PropTowTruck:IsHookInUse()
-        return self.hookPropHandle ~= nil
+        return nil ~= self.hookPropHandle
     end
 
     function PropTowTruck:GrabHookAsync(ped)
@@ -976,8 +981,8 @@ end
         local runFunc = function()
             -- Load prop model
             local modelLoaded = Citizen.Await(requestModelAsync(Config["HookModel"]))
-            if modelLoaded == false then
-                Logger.Error(("Failed to load model \"%s\""):format(Config["HookModel"]))
+            if false == modelLoaded then
+                logger:error("Failed to load model \"%s\"", Config["HookModel"])
                 _promise:reject()
                 return
             end
@@ -985,9 +990,9 @@ end
             -- Create Prop
             local pedPos = GetEntityCoords(ped)
             local newPropHandle = CreateObjectNoOffset(Config["HookModel"], pedPos.x, pedPos.y, pedPos.z + 1, true, true, false)
-            if newPropHandle == 0 then
+            if 0 == newPropHandle then
                 SetModelAsNoLongerNeeded(Config["HookModel"])
-                Logger.Error(("Failed to create object for model \"%s\""):format(Config["HookModel"]))
+                logger:error("Failed to create object for model \"%s\"", Config["HookModel"])
                 _promise:reject()
                 return
             end
@@ -999,8 +1004,8 @@ end
 
             -- Load rope textures
             local texturesLoaded = Citizen.Await(loadRopeTexturesAsync())
-            if texturesLoaded == false then
-                Logger.Error("Failed to load rope textures")
+            if false == texturesLoaded then
+                logger:error("Failed to load rope textures")
                 _promise:reject()
                 return
             end
@@ -1009,7 +1014,7 @@ end
             local hookPos = GetEntityCoords(self.hookPropHandle)
             local newRopeHandle = AddRope(hookPos.x, hookPos.y, hookPos.z, 0.0, 0.0, 0.0, 3.0, 3, 50.0, 0.0, 0.5, false, true, true, 1.0, true, 0)
             if not newRopeHandle then
-                Logger.Error("Failed to create rope")
+                logger:error("Failed to create rope")
                 _promise:reject()
                 return
             end
@@ -1061,17 +1066,17 @@ end
 -- ########################################
 
     function PropTowTruck:GetRopeData()
-        return Entity(self.truckHandle).state["DevJacob_Tow:Rope"]
+        return Entity(self.truckHandle).state["DevJacob:Towing:Rope"]
     end
 
     function PropTowTruck:SetRopeData(data)
-        Entity(self.truckHandle).state:set("DevJacob_Tow:Rope", data, true)
+        Entity(self.truckHandle).state:set("DevJacob:Towing:Rope", data, true)
     end
 
     function PropTowTruck:GetTowingCarNetId()
-        local bagValue = Entity(self.truckHandle).state["DevJacob_Tow:TowingCar"]
-        
-        if bagValue == nil then
+        local bagValue = Entity(self.truckHandle).state["DevJacob:Towing:TowingCar"]
+
+        if nil == bagValue then
             self:SetTowingCar(nil)
             return -1
         end
@@ -1085,19 +1090,19 @@ end
     end
 
     function PropTowTruck:SetTowingCar(car)
-        if car == nil then
+        if nil == car then
             local netId = NetworkGetNetworkIdFromEntity(self.towingCarHandle)
             if netId ~= -1 then
                 SetNetworkIdCanMigrate(netId, true)
             end
         end
 
-        Entity(self.truckHandle).state:set("DevJacob_Tow:TowingCar", car, true)
-        self.towingCarHandle = ternary(car == nil, nil, NetToObj(car))
+        Entity(self.truckHandle).state:set("DevJacob:Towing:TowingCar", car, true)
+        self.towingCarHandle = ternary(nil == car, nil, NetToObj(car))
     end
 
     function PropTowTruck:IsCarHooked()
-        return self.towingCarHandle ~= nil
+        return nil ~= self.towingCarHandle
     end
 
     function PropTowTruck:AttachCarToBed()

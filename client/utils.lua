@@ -23,37 +23,37 @@ end
 function groundCoords(coords, maxRetries, retryCount)
     _CACHE.GroundAtCoords = _CACHE.GroundAtCoords or {}
 
-	retryCount = retryCount or 0
-	maxRetries = maxRetries or 3
-	local origCoords = coords
-	coords = vector3(round(coords.x, 1), round(coords.y, 1), round(coords.z, 1))
-	local key = vector2(coords.x, coords.y)
-	local _result = function(z)
-		return vector3(origCoords.x, origCoords.y, z)
-	end
+    retryCount = retryCount or 0
+    maxRetries = maxRetries or 3
+    local origCoords = coords
+    coords = vector3(round(coords.x, 1), round(coords.y, 1), round(coords.z, 1))
+    local key = vector2(coords.x, coords.y)
+    local _result = function(z)
+        return vector3(origCoords.x, origCoords.y, z)
+    end
 
-	-- Check the cache
-	if _CACHE.GroundAtCoords[key] ~= nil then
-		return _result(_CACHE.GroundAtCoords[key])
-	end
-	
-	-- Try to fetch
-	RequestCollisionAtCoord(coords.x, coords.y, coords.x)
-	local fetchSuccessful, zCoord = GetGroundZExcludingObjectsFor_3dCoord(coords.x, coords.y, coords.z, true)
+    -- Check the cache
+    if nil ~= _CACHE.GroundAtCoords[key] then
+        return _result(_CACHE.GroundAtCoords[key])
+    end
 
-	-- If the fetch failed, and we are still able to retry, try again
-	if not fetchSuccessful and retryCount < maxRetries then
-		return groundCoords(origCoords, maxRetries, retryCount + 1)
-	end
+    -- Try to fetch
+    RequestCollisionAtCoord(coords.x, coords.y, coords.x)
+    local fetchSuccessful, zCoord = GetGroundZExcludingObjectsFor_3dCoord(coords.x, coords.y, coords.z, true)
 
-	-- If the fetch was successful cache the result, otherwise default
-	if fetchSuccessful then
-		_CACHE.GroundAtCoords[key] = zCoord
-		return _result(zCoord)
-	else
-		local playerPos = GetEntityCoords(PlayerPedId())
-		return _result(playerPos.z - 0.9)
-	end
+    -- If the fetch failed, and we are still able to retry, try again
+    if not fetchSuccessful and retryCount < maxRetries then
+        return groundCoords(origCoords, maxRetries, retryCount + 1)
+    end
+
+    -- If the fetch was successful cache the result, otherwise default
+    if fetchSuccessful then
+        _CACHE.GroundAtCoords[key] = zCoord
+        return _result(zCoord)
+    else
+        local playerPos = GetEntityCoords(PlayerPedId())
+        return _result(playerPos.z - 0.9)
+    end
 end
 
 function loadRopeTexturesAsync(timeout)
@@ -75,7 +75,7 @@ function loadRopeTexturesAsync(timeout)
         end
 
         local result = RopeAreTexturesLoaded()
-        _promise:resolve(result == 1)
+        _promise:resolve(1 == result)
     end
 
     runFunc()
@@ -88,8 +88,8 @@ function requestModelAsync(modelName, timeout)
 
     local runFunc = function()
         -- Get the hash for the model
-        local modelHash = type(modelName) == "string" and getHash(modelName) or modelName
-        
+        local modelHash = "string" == type(modelName) and getHash(modelName) or modelName
+
         -- Get the model validity state
         local modelValid = isModelHashValid(modelHash)
 
@@ -112,7 +112,7 @@ function requestModelAsync(modelName, timeout)
         end
 
         local result = HasModelLoaded(modelHash)
-        _promise:resolve(result == 1)
+        _promise:resolve(1 == result)
     end
 
     runFunc()
@@ -121,12 +121,12 @@ end
 
 function drawText2DThisFrame(drawOptions)
     -- Validate the draw options
-    if drawOptions.coords == nil then error("Missing options field \"coords\", it must be a valid vector3 or vector2 object!", 2) end
+    if nil == drawOptions.coords then error("Missing options field \"coords\", it must be a valid vector3 or vector2 object!", 2) end
     local coords = drawOptions.coords
 
-    if drawOptions.text == nil or drawOptions.text == "" then error("Missing options field \"text\", it must be a valid string!", 2) end
+    if nil == drawOptions.text or "" == drawOptions.text then error("Missing options field \"text\", it must be a valid string!", 2) end
     local text = drawOptions.text
-    
+
     local colour = drawOptions.colour or { r = 255, g = 255, b = 255, a = 215 }
     local scale = drawOptions.scale or 0.35
     local outline = drawOptions.outline or false
@@ -139,15 +139,15 @@ function drawText2DThisFrame(drawOptions)
     SetTextDropshadow(0, 0, 0, 0, 255)
     SetTextEdge(2, 0, 0, 0, 255)
     SetTextDropShadow()
-    if outline == true then SetTextOutline() end
+    if true == outline then SetTextOutline() end
 
-    if alignment == 0 or alignment == 2 then
+    if 0 == alignment or 2 == alignment then
         SetTextJustification(alignment)
 
-        if alignment == 2 then
+        if 2 == alignment then
             SetTextWrap(0, coords.x)
         end
-    end 
+    end
 
     BeginTextCommandDisplayText("STRING")
     AddTextComponentSubstringPlayerName(text)
@@ -156,13 +156,13 @@ end
 
 function networkEntity(handle, takeControl, canMigrate)
     SetEntityAsMissionEntity(handle, true, true)
-    
+
     if not NetworkGetEntityIsNetworked(handle) then
         local attempts = 1
         while attempts <= 10 and not NetworkGetEntityIsNetworked(handle) do
             attempts = attempts + 1
             NetworkRegisterEntityAsNetworked(handle)
-            
+
             Citizen.Wait(100)
         end
     end
@@ -171,16 +171,16 @@ function networkEntity(handle, takeControl, canMigrate)
     SetNetworkIdExistsOnAllMachines(netId, true)
     SetNetworkIdCanMigrate(netId, true)
 
-    if takeControl == true then
+    if true == takeControl then
         local attempts = 1
         while attempts <= 15 and not NetworkHasControlOfNetworkId(netId) do
             attempts = attempts + 1
             NetworkRequestControlOfNetworkId(netId)
-            
+
             Citizen.Wait(100)
         end
 
-        if NetworkHasControlOfNetworkId(netId) and canMigrate == false then
+        if NetworkHasControlOfNetworkId(netId) and false == canMigrate then
             SetNetworkIdCanMigrate(netId, false)
         end
     end

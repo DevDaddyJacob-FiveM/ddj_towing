@@ -18,11 +18,11 @@ TowTruck.__index = TowTruck
 function TowTruck.new(truckConfig, truckHandle)
     local truckType = TowTruck.ParseType(truckConfig.truckType)
 
-    if truckType == TowTruck.TYPE.PROP_BASED then
+    if TowTruck.TYPE.PROP_BASED == truckType then
         return PropTowTruck.new(truckConfig, truckHandle)
     end
 
-    if truckType == TowTruck.TYPE.SCOOP_BASED then
+    if TowTruck.TYPE.SCOOP_BASED == truckType then
         return ScoopTowTruck.new(truckConfig, truckHandle)
     end
 
@@ -32,13 +32,13 @@ end
 function TowTruck.ParseType(truckType)
     local _type = type(truckType)
 
-    if (_type == "string" and truckType:lower() == "prop")
-        or (_type == "number" and truckType == TowTruck.TYPE.PROP_BASED) then
+    if ("string" == _type and "prop" == truckType:lower())
+        or ("number" == _type and TowTruck.TYPE.PROP_BASED == truckType) then
         return TowTruck.TYPE.PROP_BASED
     end
 
-    if (_type == "string" and truckType:lower() == "scoop")
-        or (_type == "number" and truckType == TowTruck.TYPE.SCOOP_BASED) then
+    if ("string" == _type and "scoop" == truckType:lower())
+        or ("number" == _type and TowTruck.TYPE.SCOOP_BASED == truckType) then
         return TowTruck.TYPE.SCOOP_BASED
     end
 

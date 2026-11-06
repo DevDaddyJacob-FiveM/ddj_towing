@@ -19,7 +19,7 @@ function ScoopTowTruck.new(truckConfig, truckHandle)
 
     self.truckHandle = truckHandle
     self.truckNetId = VehToNet(truckHandle)
-    Logger.Debug("ScoopTowTruck.new = ", self.truckNetId)
+    logger:debug("ScoopTowTruck.new = %s", self.truckNetId)
     
     self.hookBoneIndex = GetEntityBoneIndexByName(self.truckHandle, self.config.hookRoot.boneName)
     self.attachBoneIndex = GetEntityBoneIndexByName(self.truckHandle, self.config.bedAttach.boneName)
@@ -52,29 +52,34 @@ function ScoopTowTruck.new(truckConfig, truckHandle)
 end
 
 function ScoopTowTruck.ValidateConfig(truckCfg)
-    if truckCfg == nil then return nil end
-    if TowTruck.ParseType(truckCfg.truckType) ~= TowTruck.TYPE.SCOOP_BASED then return nil end
+    if nil == truckCfg then
+        return nil
+    end
+
+    if TowTruck.ParseType(truckCfg.truckType) ~= TowTruck.TYPE.SCOOP_BASED then
+        return nil
+    end
 
     local newConfigTable = {}
     local defaultCfg = {
-		controlBoxOffset = vector3(-1.1, -1.3, -0.4),
-		hookRoot = {
-			boneName = "attach_male",
-			offset = vector3(0.0, 0.0, 0.0),
-		},
-		bedAttach = {
-			boneName = "misc_z",
-			offset = vector3(0.0, 0.0, 0.0),
-		},
-		bedPositions = {
-			raised = 0.0,
-			lowered = 0.25,
-		},
+        controlBoxOffset = vector3(-1.1, -1.3, -0.4),
+        hookRoot = {
+            boneName = "attach_male",
+            offset = vector3(0.0, 0.0, 0.0),
+        },
+        bedAttach = {
+            boneName = "misc_z",
+            offset = vector3(0.0, 0.0, 0.0),
+        },
+        bedPositions = {
+            raised = 0.0,
+            lowered = 0.25,
+        },
     }
     
     local getValue = function(key, cfg)
         local _cfg = cfg or truckCfg
-        if _cfg[key] ~= nil then
+        if nil ~= _cfg[key] then
             return _cfg[key]
         else
             return defaultCfg[key]
@@ -121,7 +126,7 @@ end
                     
                     -- Try to find it from the net id
                     local newTruckHandle = NetToObj(towTruck.truckNetId)
-                    Logger.Debug("ScoopTowTruck.GetLifeCycleThread = ", newTruckHandle)
+                    logger:debug("ScoopTowTruck.GetLifeCycleThread = %s", newTruckHandle)
                     if DoesEntityExist(newTruckHandle) then
                         towTruck.truckHandle = newTruckHandle
                     else
@@ -161,7 +166,7 @@ end
                 towTruck:Thread_ProcessUnhookVeh(sharedData)
                 
                 -- Handle starting hook thread
-                if towTruck.hookThread == false and sharedData.isHookInUse and IsEntityAttachedToEntity(sharedData.playerPed, towTruck.hookPropHandle) == 1 then
+                if false == towTruck.hookThread and sharedData.isHookInUse and 1 == IsEntityAttachedToEntity(sharedData.playerPed, towTruck.hookPropHandle) then
                     -- Handle attaching to vehicles
                     Citizen.CreateThread(ScoopTowTruck.GetHookThread(towTruck))
                 end
@@ -201,10 +206,10 @@ end
     end
 
     function ScoopTowTruck:Thread_ProcessWinchMovement(data)
-        if 
-            not data.isUsingControls 
-            or not data.isCarHooked 
-            or (self.towingCarHandle ~= nil and IsEntityAttachedToEntity(self.truckHandle, self.towingCarHandle))
+        if
+            not data.isUsingControls
+            or not data.isCarHooked
+            or (nil ~= self.towingCarHandle and IsEntityAttachedToEntity(self.truckHandle, self.towingCarHandle))
         then
             return
         end
@@ -319,8 +324,8 @@ end
     end
 
     function ScoopTowTruck:Thread_ProcessUnhookVeh(data)
-        if not data.isCarHooked or self.hookRopeHandle == nil then
-            return 
+        if not data.isCarHooked or nil == self.hookRopeHandle then
+            return
         end
         
         local hookedVeh = GetOffsetFromEntityInWorldCoords(self.towingCarHandle, self.towingCarAttachOffset)
@@ -344,7 +349,7 @@ end
     end
 
     function ScoopTowTruck:Thread_DrawDebugUi()
-        if Config["DebugMode"] ~= true then
+        if true ~= Config["DebugMode"] then
             return
         end
 
@@ -373,7 +378,7 @@ end
         drawAlignedText(0.02, "Tow Truck Pos: " .. self:GetBedPos())
 
 
-        if self.towingCarHandle ~= nil then
+        if nil ~= self.towingCarHandle then
             drawAlignedText(0.02, " ")
             drawAlignedText(0.02, "Towing Car Rot: " .. GetEntityRotation(self.towingCarHandle, 2))
 
@@ -415,25 +420,25 @@ end
 -- ##################################
 
     function ScoopTowTruck:Destroy(deleteVehicle)
-        if self.hookPropHandle ~= nil and DoesEntityExist(self.hookPropHandle) then
+        if nil ~= self.hookPropHandle and DoesEntityExist(self.hookPropHandle) then
             DeleteEntity(self.hookPropHandle)
             self.hookPropHandle = nil
         end
-        
-        if self.hookRopeHandle ~= nil and DoesRopeExist(self.hookRopeHandle) then
+
+        if nil ~= self.hookRopeHandle and DoesRopeExist(self.hookRopeHandle) then
             DeleteRope(self.hookRopeHandle)
             self.hookRopeHandle = nil
         end
 
-        if deleteVehicle == true and self.truckHandle ~= nil and DoesEntityExist(self.truckHandle) then
+        if true == deleteVehicle and nil ~= self.truckHandle and DoesEntityExist(self.truckHandle) then
             DeleteEntity(self.truckHandle)
             self.truckHandle = nil
         end
-        
-        if self.cache.previewCar ~= nil then
+
+        if nil ~= self.cache.previewCar then
             DeleteEntity(self.cache.previewCar)
             local towingCarHandle = NetToVeh(self:GetTowingCarNetId())
-            Logger.Debug("ScoopTowTruck:Destroy = ", towingCarHandle)
+            logger:debug("ScoopTowTruck:Destroy = %s", towingCarHandle)
             ResetEntityAlpha(towingCarHandle)
             self.cache.previewCar = nil
         end
@@ -488,9 +493,9 @@ end
 -- ###################################
 
     function ScoopTowTruck:GetState()
-        local bagValue = Entity(self.truckHandle).state["DevJacob_Tow:State"]
-        
-        if bagValue == nil then
+        local bagValue = Entity(self.truckHandle).state["DevJacob:Towing:State"]
+
+        if nil == bagValue then
             self:SetState(ScoopTowTruck.STATE.NONE)
             return ScoopTowTruck.STATE.NONE
         end
@@ -499,7 +504,7 @@ end
     end
 
     function ScoopTowTruck:SetState(state)
-        Entity(self.truckHandle).state:set("DevJacob_Tow:State", state, true)
+        Entity(self.truckHandle).state:set("DevJacob:Towing:State", state, true)
     end
 
 -- #################################
@@ -513,9 +518,9 @@ end
 -- ####################################
 
     function ScoopTowTruck:GetAction()
-        local bagValue = Entity(self.truckHandle).state["DevJacob_Tow:Action"]
-        
-        if bagValue == nil then
+        local bagValue = Entity(self.truckHandle).state["DevJacob:Towing:Action"]
+
+        if nil == bagValue then
             self:SetAction(TowTruck.ACTION.NONE)
             return TowTruck.ACTION.NONE
         end
@@ -524,7 +529,7 @@ end
     end
 
     function ScoopTowTruck:SetAction(action)
-        Entity(self.truckHandle).state:set("DevJacob_Tow:Action", action, true)
+        Entity(self.truckHandle).state:set("DevJacob:Towing:Action", action, true)
     end
 
 -- ##################################
@@ -540,19 +545,19 @@ end
     function ScoopTowTruck:DisplayBedControlsThisFrame()
         local data = self.prompts.bedControls
         local prompts = {}
-        
-        if data["controlBed"] == true then
+
+        if true == data["controlBed"] then
             prompts[#prompts + 1] = ("Press ~%s~ to raise bed"):format(toInputString("+towingBedRaise"))
             prompts[#prompts + 1] = ("Press ~%s~ to lower bed"):format(toInputString("+towingBedLower"))
         end
 
-        if #prompts == 0 then 
+        if 0 == #prompts then
             return
         end
 
         BeginTextCommandDisplayHelp("STRING")
-        AddTextEntry("DevJacob_Tow:BedControls", table.concat(prompts, "~n~"))
-        AddTextComponentSubstringTextLabel("DevJacob_Tow:BedControls")
+        AddTextEntry("DevJacob:Towing:BedControls", table.concat(prompts, "~n~"))
+        AddTextComponentSubstringTextLabel("DevJacob:Towing:BedControls")
         EndTextCommandDisplayHelp(0, 0, 1, -1)
 
         -- Reset the active prompts
@@ -564,41 +569,41 @@ end
     function ScoopTowTruck:DisplayWinchControlsThisFrame()
         local data = self.prompts.winchControls
         local prompts = {}
-        
-        if data["cannotAttach"] == true then
+
+        if true == data["cannotAttach"] then
             prompts[#prompts + 1] = "Cannot attach hook to that!"
-        elseif data["attachToVehicle"] == true then
+        elseif true == data["attachToVehicle"] then
             prompts[#prompts + 1] = "Press ~INPUT_CONTEXT~ to attach hook to vehicle"
         end
 
-        if data["grabHook"] == true then
+        if true == data["grabHook"] then
             prompts[#prompts + 1] = "Press ~INPUT_CONTEXT~ to grab hook"
-        elseif data["storeHook"] == true then
+        elseif true == data["storeHook"] then
             prompts[#prompts + 1] = "Press ~INPUT_CONTEXT~ to store hook"
         end
 
-        if data["strapVehicle"] == true then
+        if true == data["strapVehicle"] then
             prompts[#prompts + 1] = "Press ~INPUT_CONTEXT~ to strap down vehicle"
-        elseif data["unStrapVehicle"] == true then
+        elseif true == data["unStrapVehicle"] then
             prompts[#prompts + 1] = "Press ~INPUT_CONTEXT~ to unstrap vehicle"
         end
 
-        if data["controlWinch"] == true then
+        if true == data["controlWinch"] then
             prompts[#prompts + 1] = "Press ~INPUT_CONTEXT~ to wind winch"
             prompts[#prompts + 1] = "Press ~INPUT_CONTEXT_SECONDARY~ to unwind winch"
         end
 
-        if data["unHookVehicle"] == true then
+        if true == data["unHookVehicle"] then
             prompts[#prompts + 1] = "Press ~INPUT_CONTEXT_SECONDARY~ to unhook the vehicle"
         end
 
-        if #prompts == 0 then 
+        if 0 == #prompts then
             return
         end
 
         BeginTextCommandDisplayHelp("STRING")
-        AddTextEntry("DevJacob_Tow:WinchControls", table.concat(prompts, "~n~"))
-        AddTextComponentSubstringTextLabel("DevJacob_Tow:WinchControls")
+        AddTextEntry("DevJacob:Towing:WinchControls", table.concat(prompts, "~n~"))
+        AddTextComponentSubstringTextLabel("DevJacob:Towing:WinchControls")
         EndTextCommandDisplayHelp(0, 0, 0, -1)
 
         -- Reset the active prompts
@@ -630,9 +635,9 @@ end
 -- ##########################################
 
     function ScoopTowTruck:GetBedPos()
-        local bagValue = Entity(self.truckHandle).state["DevJacob_Tow:BedPos"]
-        
-        if bagValue == nil then
+        local bagValue = Entity(self.truckHandle).state["DevJacob:Towing:BedPos"]
+
+        if nil == bagValue then
             self:SetBedPos(0.0)
             return 0.0
         end
@@ -641,12 +646,12 @@ end
     end
 
     function ScoopTowTruck:SetBedPos(posVal)
-        Entity(self.truckHandle).state:set("DevJacob_Tow:BedPos", posVal, true)
+        Entity(self.truckHandle).state:set("DevJacob:Towing:BedPos", posVal, true)
         SetVehicleBulldozerArmPosition(self.truckHandle, posVal, true)
     end
 
     function ScoopTowTruck:CanControlBed()
-        return self.cache.canControlBed == true
+        return true == self.cache.canControlBed
     end
 
     function ScoopTowTruck:LowerBed()
@@ -729,7 +734,7 @@ end
 
     function ScoopTowTruck.GetHookThread(towTruck)
         local threadFunc = function()
-            if towTruck.hookThread == true then
+            if true == towTruck.hookThread then
                 return
             end
     
@@ -742,7 +747,7 @@ end
             -- Cast Thread
             local castThread = true
             Citizen.CreateThread(function()
-                while towTruck:IsHookInUse() and IsEntityAttachedToEntity(playerPed, towTruck.hookPropHandle) == 1 do
+                while towTruck:IsHookInUse() and 1 == IsEntityAttachedToEntity(playerPed, towTruck.hookPropHandle) do
                     Citizen.Wait(0)
                     
                     local camCoords = GetFinalRenderedCamCoord()
@@ -773,11 +778,11 @@ end
             -- Draw & Process Thread
             local processThread = true
             Citizen.CreateThread(function()
-                while towTruck:IsHookInUse() and IsEntityAttachedToEntity(playerPed, towTruck.hookPropHandle) == 1 do
+                while towTruck:IsHookInUse() and 1 == IsEntityAttachedToEntity(playerPed, towTruck.hookPropHandle) do
                     Citizen.Wait(0)
-                        
-                    if lastCastResult ~= nil then
-                        local canAttach = lastCastResult.hit and lastCastResult.entityHit ~= nil and DoesEntityExist(lastCastResult.entityHit) 
+
+                    if nil ~= lastCastResult then
+                        local canAttach = lastCastResult.hit and nil ~= lastCastResult.entityHit and DoesEntityExist(lastCastResult.entityHit)
                             and IsEntityAVehicle(lastCastResult.entityHit) and lastCastResult.entityHit ~= towTruck.truckHandle
                         local endRgb = ternary(canAttach, { r = 0, g = 255, b = 0 }, { r = 255, g = 0, b = 0 })
                     
@@ -790,16 +795,16 @@ end
                         end
     
                         if canAttach and IsControlJustPressed(0, 51) then
-    
+
                             -- Delete the hook prop
-                            if towTruck.hookPropHandle ~= nil and DoesEntityExist(towTruck.hookPropHandle) then
+                            if nil ~= towTruck.hookPropHandle and DoesEntityExist(towTruck.hookPropHandle) then
                                 DeleteEntity(towTruck.hookPropHandle)
                                 towTruck:SetRopeData(nil)
                                 towTruck.hookPropHandle = nil
                             end
-                            
+
                             -- Delete the hook rope
-                            if towTruck.hookRopeHandle ~= nil and DoesRopeExist(towTruck.hookRopeHandle) then
+                            if nil ~= towTruck.hookRopeHandle and DoesRopeExist(towTruck.hookRopeHandle) then
                                 DeleteRope(towTruck.hookRopeHandle)
                                 towTruck:SetRopeData(nil)
                                 towTruck.hookRopeHandle = nil
@@ -819,7 +824,7 @@ end
                             
                             -- Network the entities, force control, and get their net ids
                             local towingCarNetId = networkEntity(lastCastResult.entityHit, true)
-                            Logger.Debug("ScoopTowTruck.GetHookThread = ", towingCarNetId)
+                            logger:debug("ScoopTowTruck.GetHookThread = %s", towingCarNetId)
 
                             Citizen.Wait(50)
                             towTruck:SetRopeData({
@@ -872,7 +877,7 @@ end
     end
 
     function ScoopTowTruck:IsHookInUse()
-        return self.hookPropHandle ~= nil
+        return nil ~= self.hookPropHandle
     end
 
     function ScoopTowTruck:GrabHookAsync(ped)
@@ -881,8 +886,8 @@ end
         local runFunc = function()
             -- Load prop model
             local modelLoaded = Citizen.Await(requestModelAsync(Config["HookModel"]))
-            if modelLoaded == false then
-                Logger.Error(("Failed to load model \"%s\""):format(Config["HookModel"]))
+            if false == modelLoaded then
+                logger:error("Failed to load model \"%s\"", Config["HookModel"])
                 _promise:reject()
                 return
             end
@@ -890,22 +895,22 @@ end
             -- Create Prop
             local pedPos = GetEntityCoords(ped)
             local newPropHandle = CreateObjectNoOffset(Config["HookModel"], pedPos.x, pedPos.y, pedPos.z + 1, true, true, false)
-            if newPropHandle == 0 then
+            if 0 == newPropHandle then
                 SetModelAsNoLongerNeeded(Config["HookModel"])
-                Logger.Error(("Failed to create object for model \"%s\""):format(Config["HookModel"]))
+                logger:error("Failed to create object for model \"%s\"", Config["HookModel"])
                 _promise:reject()
                 return
             end
             self.hookPropHandle = newPropHandle
             SetModelAsNoLongerNeeded(Config["HookModel"])
-            
+
             local boneIndex = GetPedBoneIndex(ped, 18905) -- SKEL_L_Hand
             AttachEntityToEntity(self.hookPropHandle, ped, boneIndex, 0.175, -0.1, 0.07, 0.0, -75.0, 90.0, false, false, false, false, 2, true)
 
             -- Load rope textures
             local texturesLoaded = Citizen.Await(loadRopeTexturesAsync())
-            if texturesLoaded == false then
-                Logger.Error("Failed to load rope textures")
+            if false == texturesLoaded then
+                logger:error("Failed to load rope textures")
                 _promise:reject()
                 return
             end
@@ -914,7 +919,7 @@ end
             local hookPos = GetEntityCoords(self.hookPropHandle)
             local newRopeHandle = AddRope(hookPos.x, hookPos.y, hookPos.z, 0.0, 0.0, 0.0, 3.0, 3, 50.0, 0.0, 0.5, false, true, true, 1.0, true, 0)
             if not newRopeHandle then
-                Logger.Error("Failed to create rope")
+                logger:error("Failed to create rope")
                 _promise:reject()
                 return
             end
@@ -929,7 +934,7 @@ end
                 5.0, false, false, nil, nil)
 
             local hookPropNetId = networkEntity(newPropHandle, true)
-            Logger.Debug("ScoopTowTruck:GrabHookAsync = ", hookPropNetId)
+            logger:debug("ScoopTowTruck:GrabHookAsync = %s", hookPropNetId)
             Citizen.Wait(150)
 
             self:SetRopeData({
@@ -967,17 +972,17 @@ end
 -- ########################################
 
     function ScoopTowTruck:GetRopeData()
-        return Entity(self.truckHandle).state["DevJacob_Tow:Rope"]
+        return Entity(self.truckHandle).state["DevJacob:Towing:Rope"]
     end
 
     function ScoopTowTruck:SetRopeData(data)
-        Entity(self.truckHandle).state:set("DevJacob_Tow:Rope", data, true)
+        Entity(self.truckHandle).state:set("DevJacob:Towing:Rope", data, true)
     end
 
     function ScoopTowTruck:GetTowingCarNetId()
-        local bagValue = Entity(self.truckHandle).state["DevJacob_Tow:TowingCar"]
-        
-        if bagValue == nil then
+        local bagValue = Entity(self.truckHandle).state["DevJacob:Towing:TowingCar"]
+
+        if nil == bagValue then
             self:SetTowingCar(nil)
             return -1
         end
@@ -991,24 +996,24 @@ end
     end
 
     function ScoopTowTruck:SetTowingCar(car)
-        if car == nil then
+        if nil == car then
             local netId = NetworkGetNetworkIdFromEntity(self.towingCarHandle)
             if netId ~= -1 then
                 SetNetworkIdCanMigrate(netId, true)
             end
         end
 
-        Entity(self.truckHandle).state:set("DevJacob_Tow:TowingCar", car, true)
-        self.towingCarHandle = ternary(car == nil, nil, NetworkGetNetworkIdFromEntity(car))
+        Entity(self.truckHandle).state:set("DevJacob:Towing:TowingCar", car, true)
+        self.towingCarHandle = ternary(nil == car, nil, NetworkGetNetworkIdFromEntity(car))
     end
 
     function ScoopTowTruck:IsCarHooked()
-        return self.towingCarHandle ~= nil
+        return nil ~= self.towingCarHandle
     end
 
     function ScoopTowTruck:AttachCarToBed()
         local towingCarHandle = NetToVeh(self:GetTowingCarNetId())
-        Logger.Debug("ScoopTowTruck:AttachCarToBed = ", towingCarHandle)
+        logger:debug("ScoopTowTruck:AttachCarToBed = %s", towingCarHandle)
         local carPos = GetEntityCoords(towingCarHandle, false)
         local bedPos = GetEntityCoords(self.truckHandle, false)
         local attachPos = self.config.bedAttach.offset + vector3(0.0, 0.0, carPos.z - bedPos.z - 0.30)

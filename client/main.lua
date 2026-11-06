@@ -10,7 +10,7 @@ AddEventHandler("onResourceStop", function(resourceName)
         return
     end
 
-    if currentTowTruck ~= nil then
+    if nil ~= currentTowTruck then
         currentTowTruck:Destroy()
     end
 end)
@@ -21,17 +21,17 @@ Citizen.CreateThread(function()
         Citizen.Wait(100)
         local playerPed = PlayerPedId()
         local vehicle = GetVehiclePedIsIn(playerPed, true)
-        
+
         -- Check if we got a return on the vehicle
-        if vehicle == 0 then
+        if 0 == vehicle then
             goto continue
         end
 
         -- Check if the vehicle is a tow truck
         local vehicleHash = GetEntityModel(vehicle)
         local towTruckConfig = Config.TowTrucks[vehicleHash]
-        if towTruckConfig == nil then
-            if currentTowTruck ~= nil then
+        if nil == towTruckConfig then
+            if nil ~= currentTowTruck then
                 currentTowTruck:SetAction(TowTruck.ACTION.NONE)
             else
                 canOperateBed = false
@@ -41,7 +41,7 @@ Citizen.CreateThread(function()
 
         -- Ensure we have control of the entity
         if not NetworkHasControlOfEntity(vehicle) then
-            if currentTowTruck ~= nil then
+            if nil ~= currentTowTruck then
                 currentTowTruck:SetAction(TowTruck.ACTION.NONE)
             else
                 canOperateBed = false
@@ -50,7 +50,7 @@ Citizen.CreateThread(function()
         end
 
         -- Create the truck object
-        if currentTowTruck == nil then
+        if nil == currentTowTruck then
             currentTowTruck = TowTruck.new(towTruckConfig, vehicle)
         else
             local vehicleNetId = VehToNet(vehicle)
@@ -60,10 +60,10 @@ Citizen.CreateThread(function()
         end
 
         -- Check if the player can operate the bed
-        if currentTowTruck ~= nil then
+        if nil ~= currentTowTruck then
             local lastVehIsTruck = currentTowTruck.truckHandle == vehicle
             local isInSeat = playerPed == GetPedInVehicleSeat(vehicle, -1)
-            
+
             canOperateBed = lastVehIsTruck and (isInSeat or currentTowTruck:CanControlBed())
 
             if not canOperateBed then
@@ -77,17 +77,17 @@ end)
 
 local function OnCommandBedRaise_Down()
     -- Ensure the current tow truck exists
-    if currentTowTruck == nil then
+    if nil == currentTowTruck then
         return
     end
-    
+
     -- Check if the player can operate the bed
-    if not canOperateBed then 
+    if not canOperateBed then
         return
     end
 
     -- Ensure the other movement key isn't in use
-    if movementControls.lowerBed == true then
+    if true == movementControls.lowerBed then
         return
     end
 
@@ -97,12 +97,12 @@ end
 
 local function OnCommandBedRaise_Up()
     -- Ensure the current tow truck exists
-    if currentTowTruck == nil then
+    if nil == currentTowTruck then
         return
     end
 
     -- Ensure the the movement key is infact in use
-    if movementControls.raiseBed == false then
+    if false == movementControls.raiseBed then
         return
     end
 
@@ -112,17 +112,17 @@ end
 
 local function OnCommandBedLower_Down()
     -- Ensure the current tow truck exists
-    if currentTowTruck == nil then
+    if nil == currentTowTruck then
         return
     end
-    
+
     -- Check if the player can operate the bed
-    if not canOperateBed then 
+    if not canOperateBed then
         return
     end
 
     -- Ensure the other movement key isn't in use
-    if movementControls.raiseBed == true then
+    if true == movementControls.raiseBed then
         return
     end
 
@@ -132,12 +132,12 @@ end
 
 local function OnCommandBedLower_Up()
     -- Ensure the current tow truck exists
-    if currentTowTruck == nil then
+    if nil == currentTowTruck then
         return
     end
 
     -- Ensure the the movement key is infact in use
-    if movementControls.lowerBed == false then
+    if false == movementControls.lowerBed then
         return
     end
 

@@ -1,11 +1,11 @@
 local myOwnership = {}
 local ropeSync = {}
 
-local function deleteRope(storageKey) 
+local function deleteRope(storageKey)
     -- print(storageKey, "Delete pre checks for local copy of rope", ropeSync[storageKey].ropeHandle)
-    if 
-        ropeSync[storageKey] ~= nil 
-        and ropeSync[storageKey].ropeHandle ~= nil
+    if
+        nil ~= ropeSync[storageKey]
+        and nil ~= ropeSync[storageKey].ropeHandle
         and DoesRopeExist(ropeSync[storageKey].ropeHandle)
     then
         -- print(storageKey, "Deleting local copy of rope", ropeSync[storageKey].ropeHandle)
@@ -16,9 +16,17 @@ local function deleteRope(storageKey)
 end
 
 local function updateRope(data)
-    if ropeSync[data.truckNetId] == nil then return end
-    if ropeSync[data.truckNetId].ropeHandle == nil then return end
-    if not DoesRopeExist(ropeSync[data.truckNetId].ropeHandle) then return end
+    if nil == ropeSync[data.truckNetId] then
+        return
+    end
+
+    if nil == ropeSync[data.truckNetId].ropeHandle then
+        return
+    end
+
+    if not DoesRopeExist(ropeSync[data.truckNetId].ropeHandle) then
+        return
+    end
 
     RopeResetLength(ropeSync[data.truckNetId].ropeHandle, data.length)
     ropeSync[data.truckNetId].data = data
@@ -30,15 +38,15 @@ local function createRope(storageKey, data)
 
     -- Load rope textures
     local texturesLoaded = Citizen.Await(loadRopeTexturesAsync())
-    if texturesLoaded == false then
-        Logger.Error("Failed to load rope textures")
+    if false == texturesLoaded then
+        logger:error("Failed to load rope textures")
         return
     end
 
     -- Create the rope
     local ropeHandle = AddRope(
-        data.ropeRoot.x, data.ropeRoot.y, data.ropeRoot.z, 
-        0.0, 0.0, 0.0, 
+        data.ropeRoot.x, data.ropeRoot.y, data.ropeRoot.z,
+        0.0, 0.0, 0.0,
         data.maxLength + 0.001,
         3,
         data.length + 0.001,
@@ -52,14 +60,14 @@ local function createRope(storageKey, data)
         0)
 
     ActivatePhysics(ropeHandle)
-        
+
     -- print(
     --     storageKey,
     --     "Creating local copy of hook rope",
     --     ropeHandle,
     --     "-",
-    --     data.ropeRoot.x, data.ropeRoot.y, data.ropeRoot.z, 
-    --     0.0, 0.0, 0.0, 
+    --     data.ropeRoot.x, data.ropeRoot.y, data.ropeRoot.z,
+    --     0.0, 0.0, 0.0,
     --     data.maxLength + 0.001,
     --     3,
     --     data.length + 0.001,
@@ -76,7 +84,7 @@ local function createRope(storageKey, data)
     AttachEntitiesToRope(
         ropeHandle,
         truckHandle,
-        targetHandle, 
+        targetHandle,
         data.truckAttachPos.x,
         data.truckAttachPos.y,
         data.truckAttachPos.z,
@@ -95,7 +103,7 @@ local function createRope(storageKey, data)
         data = data,
         ropeHandle = ropeHandle
     }
-        
+
     -- print(
     --     storageKey,
     --     "Attachting local copy of hook rope",
@@ -104,7 +112,7 @@ local function createRope(storageKey, data)
     --     "-",
     --     ropeHandle,
     --     truckHandle,
-    --     targetHandle, 
+    --     targetHandle,
     --     data.truckAttachPos.x,
     --     data.truckAttachPos.y,
     --     data.truckAttachPos.z,
@@ -120,16 +128,18 @@ local function createRope(storageKey, data)
 
 end
 
-AddStateBagChangeHandler("DevJacob_Tow:Rope", nil, function(bagName, key, value, reserved, replicated)
+AddStateBagChangeHandler("DevJacob:Towing:Rope", nil, function(bagName, key, value, reserved, replicated)
     -- print("StateBagHandler", bagName, key, value, reserved, replicated)
     local entityHandle = GetEntityFromStateBagName(bagName)
-    if entityHandle == 0 then return end
+    if 0 == entityHandle then
+        return
+    end
     local entityNetId = NetworkGetNetworkIdFromEntity(entityHandle)
     local storageKey = entityNetId
 
     -- If we are deleting the rope
-    if value == nil then
-        if myOwnership[storageKey] == true then
+    if nil == value then
+        if true == myOwnership[storageKey] then
             myOwnership[storageKey] = nil
         else
             deleteRope(storageKey)
@@ -144,13 +154,13 @@ AddStateBagChangeHandler("DevJacob_Tow:Rope", nil, function(bagName, key, value,
     end
 
     -- If we are creating the rope
-    if value ~= nil and ropeSync[storageKey] == nil then
+    if nil ~= value and nil == ropeSync[storageKey] then
         createRope(storageKey, value)
         return
     end
 
     -- If we are updating the rope
-    if value ~= nil and ropeSync[storageKey] ~= nil then
+    if nil ~= value and nil ~= ropeSync[storageKey] then
         updateRope(storageKey, value)
         return
     end
@@ -162,9 +172,9 @@ AddEventHandler("onResourceStop", function(resourceName)
     end
 
     for key, value in pairs(ropeSync) do
-        if 
-            value ~= nil 
-            and value.ropeHandle ~= nil
+        if
+            nil ~= value
+            and nil ~= value.ropeHandle
             and DoesRopeExist(value.ropeHandle)
         then
             DeleteRope(value.ropeHandle)

@@ -1,25 +1,3 @@
-Logger = {}
-Logger.__index = Logger
-
-function Logger.Debug(message, ...)
-    if Config.DebugMode == true then
-		print(("DEBUG: " .. message):format(...))
-    end
-end
-
-function Logger.Info(message, ...)
-    print(("INFO: " .. message):format(...))
-end
-
-function Logger.Warning(message, ...)
-    print(("WARNING: " .. message):format(...))
-end
-
-function Logger.Error(message, ...)
-    print(("ERROR: " .. message):format(...))
-end
-
-
 function toInputString(cmd)
     local hexStr = ("%x"):format(joaat(cmd))
     local formattedHex = hexStr:sub(-8):upper()
@@ -31,9 +9,9 @@ function lerp(a, b, t)
 end
 
 function lerpVector3(vectorA, vectorB, lerpVal)
-    if vectorB == 0.0 or vectorB == nil then
+    if 0.0 == vectorB or nil == vectorB then
         return vector3(lerp(vectorA.x, 0.0, lerpVal), lerp(vectorA.y, 0.0, lerpVal), lerp(vectorA.z, 0.0, lerpVal))
-    elseif vectorA == 0.0 or vectorA == nil then
+    elseif 0.0 == vectorA or nil == vectorA then
         return vector3(lerp(0.0, vectorB.x, lerpVal), lerp(0.0, vectorB.y, lerpVal), lerp(0.0, vectorB.z, lerpVal))
     else
         return vector3(lerp(vectorA.x, vectorB.x, lerpVal), lerp(vectorA.y, vectorB.y, lerpVal), lerp(vectorA.z, vectorB.z, lerpVal))
