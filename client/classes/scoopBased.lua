@@ -197,7 +197,7 @@ end
     end
 
     function ScoopTowTruck:Thread_CheckControlBox(data)
-        local controlBoxPos = GetOffsetFromEntityInWorldCoords(self.truckHandle, self.config.controlBoxOffset)
+        local controlBoxPos = GetOffsetFromEntityInWorldCoords(self.truckHandle, self.config.controlBoxOffset.x, self.config.controlBoxOffset.y, self.config.controlBoxOffset.z)
         local controlsDist = #(data.pedPosition - controlBoxPos)
         data.isUsingControls = controlsDist <= 1.0
 
@@ -328,7 +328,7 @@ end
             return
         end
         
-        local hookedVeh = GetOffsetFromEntityInWorldCoords(self.towingCarHandle, self.towingCarAttachOffset)
+        local hookedVeh = GetOffsetFromEntityInWorldCoords(self.towingCarHandle, self.towingCarAttachOffset.x, self.towingCarAttachOffset.y, self.towingCarAttachOffset.z)
         local hookedVehDist = #(data.pedPosition - hookedVeh)
         if hookedVehDist > 1.4 or not IsPedOnFoot(data.playerPed) then
             return
@@ -462,7 +462,7 @@ end
     end
 
     function ScoopTowTruck:GetControlBoxStorageWorldPosition()
-        return GetOffsetFromEntityInWorldCoords(self.truckHandle, self.config.controlBoxOffset)
+        return GetOffsetFromEntityInWorldCoords(self.truckHandle, self.config.controlBoxOffset.x, self.config.controlBoxOffset.y, self.config.controlBoxOffset.z)
     end
 
     function ScoopTowTruck:GetAttachPointEntityOffset()
@@ -753,7 +753,7 @@ end
                     local camCoords = GetFinalRenderedCamCoord()
                     local camRot = GetFinalRenderedCamRot(2)
                     local destination = getOffsetFromCoordsInWorldCoords(camCoords, camRot, vector3(0.0, Config["MaxHookReach"], 0.0))
-                    local castHandle = StartShapeTestLosProbe(camCoords, destination, 4294967295, 0, 4)
+                    local castHandle = StartShapeTestLosProbe(camCoords.x, camCoords.y, camCoords.z, destination.x, destination.y, destination.z, 4294967295, 0, 4)
                 
                     local state, hit, endCoords, surfaceNormal, entityHit = GetShapeTestResult(castHandle)
                     while state == 1 do
@@ -819,8 +819,10 @@ end
                             ActivatePhysics(towTruck.hookRopeHandle)
                     
                             -- Attach the rope to the car
-                            AttachEntitiesToRope(towTruck.hookRopeHandle, towTruck.truckHandle, lastCastResult.entityHit, 
-                                bedAttachPos, lastCastResult.endCoords, ropeLength, false, false, nil, nil)
+                            AttachEntitiesToRope(towTruck.hookRopeHandle, towTruck.truckHandle, lastCastResult.entityHit,
+                                bedAttachPos.x, bedAttachPos.y, bedAttachPos.z,
+                                lastCastResult.endCoords.x, lastCastResult.endCoords.y, lastCastResult.endCoords.z,
+                                ropeLength, false, false, nil, nil)
                             
                             -- Network the entities, force control, and get their net ids
                             local towingCarNetId = networkEntity(lastCastResult.entityHit, true)
@@ -854,7 +856,7 @@ end
                                 
                             -- Set the towing car data
                             towTruck:SetTowingCar(towingCarNetId)
-                            towTruck.towingCarAttachOffset = GetOffsetFromEntityGivenWorldCoords(lastCastResult.entityHit, lastCastResult.endCoords)
+                            towTruck.towingCarAttachOffset = GetOffsetFromEntityGivenWorldCoords(lastCastResult.entityHit, lastCastResult.endCoords.x, lastCastResult.endCoords.y, lastCastResult.endCoords.z)
     
                         end
                     end
@@ -1026,7 +1028,7 @@ end
         local attachRot = getOffsetBetweenRotations(modifiedTruckRot, carRot)
         local finalRot = vector3(0, attachRot.y, attachRot.z)
     
-        AttachEntityToEntity(towingCarHandle, self.truckHandle, self.attachBoneIndex, attachPos, finalRot, false, false, false, false, 2, true)
+        AttachEntityToEntity(towingCarHandle, self.truckHandle, self.attachBoneIndex, attachPos.x, attachPos.y, attachPos.z, finalRot.x, finalRot.y, finalRot.z, false, false, false, false, 2, true)
         
         self.prompts.winchControls.controlWinch = false
     end
