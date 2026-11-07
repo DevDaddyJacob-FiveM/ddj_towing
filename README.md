@@ -1,5 +1,5 @@
 # Towing
-TBD
+A resource aimed to improve the tow truck experience by allowing a more interactive and involved process to tow cars with flatbeds!
 
 ## Installation
 Installing the resource is simple, just download the latest version from the [releases](https://github.com/DevDaddyJacob-FiveM/ddj_towing/releases/latest) tab, place the folder into your FiveM resources folder and then add `ensure ddj_towing` to your server.cfg file.
