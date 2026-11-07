@@ -184,7 +184,11 @@ end
                 towTruck:Thread_ProcessUnhookVeh(sharedData)
                 
                 -- Handle starting hook thread
-                if false == towTruck.hookThread and sharedData.isHookInUse and 1 == IsEntityAttachedToEntity(sharedData.playerPed, towTruck.hookPropHandle) then
+                if
+                    false == towTruck.hookThread
+                    and sharedData.isHookInUse
+                    and IsEntityAttachedToEntity(sharedData.playerPed, towTruck.hookPropHandle)
+                then
                     -- Handle attaching to vehicles
                     Citizen.CreateThread(PropTowTruck.GetHookThread(towTruck))
                 end
@@ -193,7 +197,7 @@ end
                 towTruck:DisplayPromptsThisFrame()
         
                 -- Debug Stuff
-                towTruck:Thread_DrawDebugUi()
+                towTruck:Thread_DrawDebugUi(sharedData)
         
                 ::continue::
             end
@@ -213,7 +217,12 @@ end
     end
 
     function PropTowTruck:Thread_CheckControlBox(data)
-        local controlBoxPos = GetOffsetFromEntityInWorldCoords(self.truckHandle, self.config.controlBoxOffset.x, self.config.controlBoxOffset.y, self.config.controlBoxOffset.z)
+        local controlBoxPos = GetOffsetFromEntityInWorldCoords(
+            self.truckHandle,
+            self.config.controlBoxOffset.x,
+            self.config.controlBoxOffset.y,
+            self.config.controlBoxOffset.z
+        )
         local controlsDist = #(data.pedPosition - controlBoxPos)
         data.isUsingControls = controlsDist <= 1.0
 
@@ -316,7 +325,12 @@ end
             return 
         end
         
-        local hookedVeh = GetOffsetFromEntityInWorldCoords(self.towingCarHandle, self.towingCarAttachOffset.x, self.towingCarAttachOffset.y, self.towingCarAttachOffset.z)
+        local hookedVeh = GetOffsetFromEntityInWorldCoords(
+            self.towingCarHandle,
+            self.towingCarAttachOffset.x,
+            self.towingCarAttachOffset.y,
+            self.towingCarAttachOffset.z
+        )
         local hookedVehDist = #(data.pedPosition - hookedVeh)
         if hookedVehDist > 1.4 or not IsPedOnFoot(data.playerPed) then
             return
@@ -336,7 +350,7 @@ end
         end
     end
 
-    function PropTowTruck:Thread_DrawDebugUi()
+    function PropTowTruck:Thread_DrawDebugUi(sharedData)
         if true ~= Config["DebugMode"] then
             return
         end
@@ -363,6 +377,9 @@ end
 
         drawAlignedText(0.02, "Tow Truck State: " .. self:GetState())
         drawAlignedText(0.02, "Tow Truck Action: " .. self:GetAction())
+        drawAlignedText(0.02, "start hook thread cond 1: " .. tostring(false == self.hookThread))
+        drawAlignedText(0.02, "start hook thread cond 2: " .. tostring(true == sharedData.isHookInUse))
+        drawAlignedText(0.02, "start hook thread cond 3: " .. tostring(IsEntityAttachedToEntity(sharedData.playerPed, self.hookPropHandle)))
 
 
         if nil ~= self.towingCarHandle then
@@ -836,13 +853,19 @@ end
             -- Cast Thread
             local castThread = true
             Citizen.CreateThread(function()
-                while towTruck:IsHookInUse() and 1 == IsEntityAttachedToEntity(playerPed, towTruck.hookPropHandle) do
+                while towTruck:IsHookInUse() and IsEntityAttachedToEntity(playerPed, towTruck.hookPropHandle) do
                     Citizen.Wait(0)
                     
                     local camCoords = GetFinalRenderedCamCoord()
                     local camRot = GetFinalRenderedCamRot(2)
                     local destination = getOffsetFromCoordsInWorldCoords(camCoords, camRot, vector3(0.0, Config["MaxHookReach"], 0.0))
-                    local castHandle = StartShapeTestLosProbe(camCoords.x, camCoords.y, camCoords.z, destination.x, destination.y, destination.z, 4294967295, 0, 4)
+                    local castHandle = StartShapeTestLosProbe(
+                        camCoords.x, camCoords.y, camCoords.z,
+                        destination.x, destination.y, destination.z,
+                        4294967295,
+                        0,
+                        4
+                    )
                 
                     local state, hit, endCoords, surfaceNormal, entityHit = GetShapeTestResult(castHandle)
                     while state == 1 do
@@ -867,15 +890,33 @@ end
             -- Draw & Process Thread
             local processThread = true
             Citizen.CreateThread(function()
-                while towTruck:IsHookInUse() and 1 == IsEntityAttachedToEntity(playerPed, towTruck.hookPropHandle) do
+                while towTruck:IsHookInUse() and IsEntityAttachedToEntity(playerPed, towTruck.hookPropHandle) do
                     Citizen.Wait(0)
                         
                     if nil ~= lastCastResult then
-                        local canAttach = lastCastResult.hit and nil ~= lastCastResult.entityHit and DoesEntityExist(lastCastResult.entityHit)
-                            and IsEntityAVehicle(lastCastResult.entityHit) and lastCastResult.entityHit ~= towTruck.truckHandle
+                        local canAttach = lastCastResult.hit
+                            and nil ~= lastCastResult.entityHit
+                            and DoesEntityExist(lastCastResult.entityHit)
+                            and IsEntityAVehicle(lastCastResult.entityHit)
+                            and lastCastResult.entityHit ~= towTruck.truckHandle
+
                         local endRgb = ternary(canAttach, { r = 0, g = 255, b = 0 }, { r = 255, g = 0, b = 0 })
                     
-                        DrawMarker(28, lastCastResult.endCoords.x, lastCastResult.endCoords.y, lastCastResult.endCoords.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.1, endRgb.r, endRgb.g, endRgb.b, 100, false, true, 2, nil, nil, false)
+                        DrawMarker(
+                            28,
+                            lastCastResult.endCoords.x, lastCastResult.endCoords.y, lastCastResult.endCoords.z,
+                            0.0, 0.0, 0.0,
+                            0.0, 0.0, 0.0,
+                            0.1, 0.1, 0.1,
+                            endRgb.r, endRgb.g, endRgb.b,
+                            100,
+                            false,
+                            true,
+                            2,
+                            nil,
+                            nil,
+                            false
+                        )
     
                         if canAttach then
                             towTruck.prompts.winchControls.attachToVehicle = true
@@ -902,7 +943,21 @@ end
                             local carPos = GetEntityCoords(lastCastResult.entityHit)
                             local bedAttachPos = towTruck:GetHookStorageWorldPosition()
                             local ropeLength = #(lastCastResult.endCoords - bedAttachPos)
-                            local newRopeHandle = AddRope(carPos.x, carPos.y, carPos.z, 0.0, 0.0, 0.0, ropeLength, 3, ropeLength, 1.0, 0.5, false, true, true, 1.0, true, 0)
+                            local newRopeHandle = AddRope(
+                                carPos.x, carPos.y, carPos.z,
+                                0.0, 0.0, 0.0,
+                                ropeLength,
+                                3,
+                                ropeLength,
+                                1.0,
+                                0.5,
+                                false,
+                                true,
+                                true,
+                                1.0,
+                                true,
+                                0
+                            )
                             towTruck.hookRopeHandle = newRopeHandle
                             ActivatePhysics(towTruck.hookRopeHandle)
                     
@@ -987,11 +1042,13 @@ end
         local _promise = promise.new()
 
         local runFunc = function()
+            logger:trace("PropTowTruck:GrabHookAsync(%s)", tostring(ped))
+
             -- Load prop model
             local modelLoaded = Citizen.Await(requestModelAsync(Config["HookModel"]))
             if false == modelLoaded then
                 logger:error("Failed to load model \"%s\"", Config["HookModel"])
-                _promise:reject()
+                _promise:reject("ERR_HOOK_MODEL_LOAD_FAILED")
                 return
             end
 
@@ -1001,7 +1058,7 @@ end
             if 0 == newPropHandle then
                 SetModelAsNoLongerNeeded(Config["HookModel"])
                 logger:error("Failed to create object for model \"%s\"", Config["HookModel"])
-                _promise:reject()
+                _promise:reject("ERR_HOOK_OBJ_CREATE_FAILED")
                 return
             end
             self.hookPropHandle = newPropHandle
@@ -1014,7 +1071,7 @@ end
             local texturesLoaded = Citizen.Await(loadRopeTexturesAsync())
             if false == texturesLoaded then
                 logger:error("Failed to load rope textures")
-                _promise:reject()
+                _promise:reject("ERR_ROPE_TXT_LOAD_FAIL")
                 return
             end
 
@@ -1023,7 +1080,7 @@ end
             local newRopeHandle = AddRope(hookPos.x, hookPos.y, hookPos.z, 0.0, 0.0, 0.0, 3.0, 3, 50.0, 0.0, 0.5, false, true, true, 1.0, true, 0)
             if not newRopeHandle then
                 logger:error("Failed to create rope")
-                _promise:reject()
+                _promise:reject("ERR_ROPE_CREATE_FAILED")
                 return
             end
             self.hookRopeHandle = newRopeHandle

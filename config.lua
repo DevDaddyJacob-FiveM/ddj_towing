@@ -5,7 +5,7 @@ Config = {
         When set to true, draws debug markers and text showing internal
         state for the tow truck the player is currently in/near.
     ]]
-    DebugMode = false,
+    DebugMode = true,
 
     --[[
         The maximum distance (in meters) the winch hook can reach when

@@ -166,7 +166,7 @@ end
                 towTruck:Thread_ProcessUnhookVeh(sharedData)
                 
                 -- Handle starting hook thread
-                if false == towTruck.hookThread and sharedData.isHookInUse and 1 == IsEntityAttachedToEntity(sharedData.playerPed, towTruck.hookPropHandle) then
+                if false == towTruck.hookThread and sharedData.isHookInUse and IsEntityAttachedToEntity(sharedData.playerPed, towTruck.hookPropHandle) then
                     -- Handle attaching to vehicles
                     Citizen.CreateThread(ScoopTowTruck.GetHookThread(towTruck))
                 end
@@ -747,7 +747,7 @@ end
             -- Cast Thread
             local castThread = true
             Citizen.CreateThread(function()
-                while towTruck:IsHookInUse() and 1 == IsEntityAttachedToEntity(playerPed, towTruck.hookPropHandle) do
+                while towTruck:IsHookInUse() and IsEntityAttachedToEntity(playerPed, towTruck.hookPropHandle) do
                     Citizen.Wait(0)
                     
                     local camCoords = GetFinalRenderedCamCoord()
@@ -778,12 +778,15 @@ end
             -- Draw & Process Thread
             local processThread = true
             Citizen.CreateThread(function()
-                while towTruck:IsHookInUse() and 1 == IsEntityAttachedToEntity(playerPed, towTruck.hookPropHandle) do
+                while towTruck:IsHookInUse() and IsEntityAttachedToEntity(playerPed, towTruck.hookPropHandle) do
                     Citizen.Wait(0)
 
                     if nil ~= lastCastResult then
-                        local canAttach = lastCastResult.hit and nil ~= lastCastResult.entityHit and DoesEntityExist(lastCastResult.entityHit)
-                            and IsEntityAVehicle(lastCastResult.entityHit) and lastCastResult.entityHit ~= towTruck.truckHandle
+                        local canAttach = lastCastResult.hit
+                            and nil ~= lastCastResult.entityHit
+                            and DoesEntityExist(lastCastResult.entityHit)
+                            and IsEntityAVehicle(lastCastResult.entityHit)
+                            and lastCastResult.entityHit ~= towTruck.truckHandle
                         local endRgb = ternary(canAttach, { r = 0, g = 255, b = 0 }, { r = 255, g = 0, b = 0 })
                     
                         DrawMarker(28, lastCastResult.endCoords.x, lastCastResult.endCoords.y, lastCastResult.endCoords.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.1, endRgb.r, endRgb.g, endRgb.b, 100, false, true, 2, nil, nil, false)
@@ -890,7 +893,7 @@ end
             local modelLoaded = Citizen.Await(requestModelAsync(Config["HookModel"]))
             if false == modelLoaded then
                 logger:error("Failed to load model \"%s\"", Config["HookModel"])
-                _promise:reject()
+                _promise:reject("ERR_HOOK_MODEL_LOAD_FAILED")
                 return
             end
 
@@ -900,7 +903,7 @@ end
             if 0 == newPropHandle then
                 SetModelAsNoLongerNeeded(Config["HookModel"])
                 logger:error("Failed to create object for model \"%s\"", Config["HookModel"])
-                _promise:reject()
+                _promise:reject("ERR_HOOK_OBJ_CREATE_FAILED")
                 return
             end
             self.hookPropHandle = newPropHandle
@@ -913,7 +916,7 @@ end
             local texturesLoaded = Citizen.Await(loadRopeTexturesAsync())
             if false == texturesLoaded then
                 logger:error("Failed to load rope textures")
-                _promise:reject()
+                _promise:reject("ERR_ROPE_TXT_LOAD_FAIL")
                 return
             end
 
@@ -922,7 +925,7 @@ end
             local newRopeHandle = AddRope(hookPos.x, hookPos.y, hookPos.z, 0.0, 0.0, 0.0, 3.0, 3, 50.0, 0.0, 0.5, false, true, true, 1.0, true, 0)
             if not newRopeHandle then
                 logger:error("Failed to create rope")
-                _promise:reject()
+                _promise:reject("ERR_ROPE_CREATE_FAILED")
                 return
             end
             self.hookRopeHandle = newRopeHandle
