@@ -32,13 +32,17 @@ end
 function TowTruck.ParseType(truckType)
     local _type = type(truckType)
 
-    if ("string" == _type and "prop" == truckType:lower())
-        or ("number" == _type and TowTruck.TYPE.PROP_BASED == truckType) then
+    if
+        ("string" == _type and "prop" == truckType:lower())
+        or ("number" == _type and TowTruck.TYPE.PROP_BASED == truckType)
+    then
         return TowTruck.TYPE.PROP_BASED
     end
 
-    if ("string" == _type and "scoop" == truckType:lower())
-        or ("number" == _type and TowTruck.TYPE.SCOOP_BASED == truckType) then
+    if 
+        ("string" == _type and "scoop" == truckType:lower())
+        or ("number" == _type and TowTruck.TYPE.SCOOP_BASED == truckType)
+    then
         return TowTruck.TYPE.SCOOP_BASED
     end
 

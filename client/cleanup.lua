@@ -1,9 +1,6 @@
 --[[
-    Independent janitor for tow truck bed objects. Runs regardless of
-    whether any client currently has a TowTruck instance for the vehicle,
-    so a bed is still cleaned up when its truck is deleted while nobody is
-    nearby to notice -- e.g. a script deleting the vehicle directly, the
-    engine despawning it, or its driver disconnecting.
+    The idea here is that the bed objects could linger, so this aims to allow
+    other clients to cleanup these leftover objects as they come across them
 ]]
 
 local function isOrphanedBed(bedHandle)
@@ -18,13 +15,17 @@ local function isOrphanedBed(bedHandle)
     end
 
     local truckHandle = NetworkGetEntityFromNetworkId(ownerNetId)
+
     return not DoesEntityExist(truckHandle)
 end
 
+
 local function deleteOrphanedBed(bedHandle)
-    if PlayerId() ~= NetworkGetEntityOwner(bedHandle) then
+    local playerId = PlayerId()
+
+    if playerId ~= NetworkGetEntityOwner(bedHandle) then
         local attempts = 1
-        while attempts <= 10 and PlayerId() ~= NetworkGetEntityOwner(bedHandle) do
+        while attempts <= 10 and playerId ~= NetworkGetEntityOwner(bedHandle) do
             attempts = attempts + 1
             NetworkRequestControlOfEntity(bedHandle)
 
@@ -37,6 +38,7 @@ local function deleteOrphanedBed(bedHandle)
         DeleteEntity(bedHandle)
     end
 end
+
 
 Citizen.CreateThread(function()
     while true do
