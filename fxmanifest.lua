@@ -5,7 +5,7 @@ use_experimental_fxv2_oal "yes"
 
 author "DevDaddyJacob"
 description "A FiveM script which adds the ability to enhance tow truck operation"
-version "1.0.0"
+version "2.0.0"
 
 dependencies {
 	"ddj_lib", -- version >= 1.4.0

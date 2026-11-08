@@ -76,6 +76,26 @@ function getOffsetBetweenRotations(rot1, rot2)
     )
 end
 
+function getHeadingOffset(fromEntity, toEntity)
+    local fromFwd = GetEntityForwardVector(fromEntity)
+    local toFwd = GetEntityForwardVector(toEntity)
+
+    local fromLen = #vector2(fromFwd.x, fromFwd.y)
+    local toLen = #vector2(toFwd.x, toFwd.y)
+
+    if 0.0001 > fromLen or 0.0001 > toLen then
+        return 0.0
+    end
+
+    local fx, fy = fromFwd.x / fromLen, fromFwd.y / fromLen
+    local tx, ty = toFwd.x / toLen, toFwd.y / toLen
+
+    local dot = (fx * tx) + (fy * ty)
+    local cross = (fx * ty) - (fy * tx)
+
+    return math.deg(math.atan(cross, dot))
+end
+
 function ternary(condition, trueValue, falseValue)
     if condition then
         return trueValue

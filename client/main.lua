@@ -1,3 +1,7 @@
+local WINCH_FORCE = 1.5
+local WHICH_MAX_SPEED = 1.0
+local WINCH_ROPE_SLACK = 0.5
+
 local currentTowTruck = nil
 local canOperateBed = false
 local movementControls = {

@@ -20,6 +20,17 @@ function isModelHashValid(hash)
     return _CACHE.ValidModelHashes[hash]
 end
 
+function getVehicleCenterOfMassOffset(vehicle)
+    _CACHE.VehicleCenterOfMassOffsets = _CACHE.VehicleCenterOfMassOffsets or {}
+
+    local modelHash = GetEntityModel(vehicle)
+    if nil == _CACHE.VehicleCenterOfMassOffsets[modelHash] then
+        _CACHE.VehicleCenterOfMassOffsets[modelHash] = GetVehicleHandlingVector(vehicle, "CHandlingData", "vecCentreOfMassOffset")
+    end
+
+    return _CACHE.VehicleCenterOfMassOffsets[modelHash]
+end
+
 function groundCoords(coords, maxRetries, retryCount)
     _CACHE.GroundAtCoords = _CACHE.GroundAtCoords or {}
 

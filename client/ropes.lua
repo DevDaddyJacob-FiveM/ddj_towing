@@ -15,21 +15,21 @@ local function deleteRope(storageKey)
     ropeSync[storageKey] = nil
 end
 
-local function updateRope(data)
-    if nil == ropeSync[data.truckNetId] then
+local function updateRope(storageKey, data)
+    if nil == ropeSync[storageKey] then
         return
     end
 
-    if nil == ropeSync[data.truckNetId].ropeHandle then
+    if nil == ropeSync[storageKey].ropeHandle then
         return
     end
 
-    if not DoesRopeExist(ropeSync[data.truckNetId].ropeHandle) then
+    if not DoesRopeExist(ropeSync[storageKey].ropeHandle) then
         return
     end
 
-    RopeResetLength(ropeSync[data.truckNetId].ropeHandle, data.length)
-    ropeSync[data.truckNetId].data = data
+    RopeResetLength(ropeSync[storageKey].ropeHandle, data.length)
+    ropeSync[storageKey].data = data
 end
 
 local function createRope(storageKey, data)

@@ -215,61 +215,72 @@ end
         end
 
         self.prompts.winchControls.controlWinch = true
-        
+
         -- Disable take cover key
         DisableControlAction(0, 44, false)
 
-        -- function getNextPoint()
-        --     -- Display line
-        --     local _maxDist = 20
-        --     local _pointsPerStep = 25
-
-        --     local p1 = GetEntityCoords(self.towingCarHandle)
-        --     local p2 = self:GetHookStorageWorldPosition()
-        --     local m = (p2.y - p1.y) / (p2.x - p1.x)
-            
-        --     local steps = ternary(
-        --         math.abs(math.max(p1.x, p2.x) - math.min(p1.x, p2.x)) >= _maxDist,
-        --         _maxDist,
-        --         math.abs(math.max(p1.x, p2.x) - math.min(p1.x, p2.x))
-        --     )
-        --     local points = steps * _pointsPerStep
-
-        --     local stepFactor = (math.max(p1.x, p2.x) - math.min(p1.x, p2.x)) / points
-            
-        --     local x = ternary(p1.x < p2.x, (p1.x + stepFactor), (p1.x - stepFactor))
-        --     local y = m * (x - p1.x) + p1.y
-        --     return vector3(x, y, p1.z)
-        -- end
-
-
-        -- Wind
-        if IsControlPressed(0, 51) and not IsControlPressed(0, 52) then
-            -- self:DetachCar()
-            ActivatePhysics(self.towingCarHandle)
-            StartRopeWinding(self.hookRopeHandle)
-            FreezeEntityPosition(self.truckHandle, true)
-            
-        elseif IsControlJustReleased(0, 51) then
-            ActivatePhysics(self.towingCarHandle)
-            StopRopeWinding(self.hookRopeHandle)
-            FreezeEntityPosition(self.truckHandle, false)
-            -- self:AttachCarToBed()
+        if IsControlPressed(0, 51) then
+            SetEntityMaxSpeed(self.towingCarHandle, WHICH_MAX_SPEED)
+            self:WinchStep()
+        else
+            SetEntityMaxSpeed(self.towingCarHandle, 999.0)
         end
-        
-        -- Unwind
-        if IsControlPressed(0, 52) and not IsControlPressed(0, 51) then
-            -- self:DetachCar()
-            ActivatePhysics(self.towingCarHandle)
-            StartRopeUnwindingFront(self.hookRopeHandle)
-            FreezeEntityPosition(self.truckHandle, true)
-            
-        elseif IsControlJustReleased(0, 52) then
-            ActivatePhysics(self.towingCarHandle)
-            StopRopeUnwindingFront(self.hookRopeHandle)
-            FreezeEntityPosition(self.truckHandle, false)
-            -- self:AttachCarToBed()
+    end
+
+    function ScoopTowTruck:WinchStep()
+        if nil == self.towingCarHandle or not DoesEntityExist(self.towingCarHandle) then
+            return
         end
+
+        local ropeData = self:GetRopeData()
+        if nil == ropeData then
+            return
+        end
+
+        local carAttachWorld = GetOffsetFromEntityInWorldCoords(
+            self.towingCarHandle,
+            self.towingCarAttachOffset.x,
+            self.towingCarAttachOffset.y,
+            self.towingCarAttachOffset.z
+        )
+        local anchorWorld = self:GetHookStorageWorldPosition()
+        local toAnchor = anchorWorld - carAttachWorld
+        local distance = #toAnchor
+
+        if distance < 0.1 or distance > ropeData.maxLength + 5.0 then
+            return
+        end
+
+        local toAnchorFlat = vector3(toAnchor.x, toAnchor.y, 0.0)
+        local horizDistance = #toAnchorFlat
+
+        if horizDistance < 0.1 then
+            return
+        end
+
+        local direction = toAnchorFlat / horizDistance
+        local forceVec = direction * WINCH_FORCE
+
+        local comOffset = getVehicleCenterOfMassOffset(self.towingCarHandle)
+
+        ActivatePhysics(self.towingCarHandle)
+        ApplyForceToEntity(
+            self.towingCarHandle,
+            3,
+            forceVec.x, forceVec.y, forceVec.z,
+            comOffset.x, comOffset.y, comOffset.z,
+            0,
+            false,
+            true,
+            true,
+            false,
+            true
+        )
+
+        RopeResetLength(self.hookRopeHandle, distance + WINCH_ROPE_SLACK)
+
+        ropeData.length = distance
+        self:SetRopeData(ropeData)
     end
 
     function ScoopTowTruck:Thread_ProcessGrabHookStrapVeh(data)
@@ -328,7 +339,12 @@ end
             return
         end
         
-        local hookedVeh = GetOffsetFromEntityInWorldCoords(self.towingCarHandle, self.towingCarAttachOffset.x, self.towingCarAttachOffset.y, self.towingCarAttachOffset.z)
+        local hookedVeh = GetOffsetFromEntityInWorldCoords(
+            self.towingCarHandle,
+            self.towingCarAttachOffset.x,
+            self.towingCarAttachOffset.y,
+            self.towingCarAttachOffset.z
+        )
         local hookedVehDist = #(data.pedPosition - hookedVeh)
         if hookedVehDist > 1.4 or not IsPedOnFoot(data.playerPed) then
             return
@@ -462,7 +478,12 @@ end
     end
 
     function ScoopTowTruck:GetControlBoxStorageWorldPosition()
-        return GetOffsetFromEntityInWorldCoords(self.truckHandle, self.config.controlBoxOffset.x, self.config.controlBoxOffset.y, self.config.controlBoxOffset.z)
+        return GetOffsetFromEntityInWorldCoords(
+            self.truckHandle,
+            self.config.controlBoxOffset.x,
+            self.config.controlBoxOffset.y,
+            self.config.controlBoxOffset.z
+        )
     end
 
     function ScoopTowTruck:GetAttachPointEntityOffset()
@@ -590,7 +611,6 @@ end
 
         if true == data["controlWinch"] then
             prompts[#prompts + 1] = "Press ~INPUT_CONTEXT~ to wind winch"
-            prompts[#prompts + 1] = "Press ~INPUT_CONTEXT_SECONDARY~ to unwind winch"
         end
 
         if true == data["unHookVehicle"] then
@@ -752,8 +772,18 @@ end
                     
                     local camCoords = GetFinalRenderedCamCoord()
                     local camRot = GetFinalRenderedCamRot(2)
-                    local destination = getOffsetFromCoordsInWorldCoords(camCoords, camRot, vector3(0.0, Config["MaxHookReach"], 0.0))
-                    local castHandle = StartShapeTestLosProbe(camCoords.x, camCoords.y, camCoords.z, destination.x, destination.y, destination.z, 4294967295, 0, 4)
+                    local destination = getOffsetFromCoordsInWorldCoords(
+                        camCoords,
+                        camRot,
+                        vector3(0.0, Config["MaxHookReach"], 0.0)
+                    )
+                    local castHandle = StartShapeTestLosProbe(
+                        camCoords.x, camCoords.y, camCoords.z,
+                        destination.x, destination.y, destination.z,
+                        4294967295,
+                        0,
+                        4
+                    )
                 
                     local state, hit, endCoords, surfaceNormal, entityHit = GetShapeTestResult(castHandle)
                     while state == 1 do
@@ -789,7 +819,21 @@ end
                             and lastCastResult.entityHit ~= towTruck.truckHandle
                         local endRgb = ternary(canAttach, { r = 0, g = 255, b = 0 }, { r = 255, g = 0, b = 0 })
                     
-                        DrawMarker(28, lastCastResult.endCoords.x, lastCastResult.endCoords.y, lastCastResult.endCoords.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.1, endRgb.r, endRgb.g, endRgb.b, 100, false, true, 2, nil, nil, false)
+                        DrawMarker(
+                            28,
+                            lastCastResult.endCoords.x, lastCastResult.endCoords.y, lastCastResult.endCoords.z,
+                            0.0, 0.0, 0.0,
+                            0.0, 0.0, 0.0,
+                            0.1, 0.1, 0.1,
+                            endRgb.r, endRgb.g, endRgb.b,
+                            100,
+                            false,
+                            true,
+                            2,
+                            nil,
+                            nil,
+                            false
+                        )
     
                         if canAttach then
                             towTruck.prompts.winchControls.attachToVehicle = true
@@ -821,12 +865,21 @@ end
                             towTruck.hookRopeHandle = newRopeHandle
                             ActivatePhysics(towTruck.hookRopeHandle)
                     
-                            -- Attach the rope to the car
-                            AttachEntitiesToRope(towTruck.hookRopeHandle, towTruck.truckHandle, lastCastResult.entityHit,
+                            AttachEntitiesToRope(
+                                towTruck.hookRopeHandle,
+                                towTruck.truckHandle,
+                                lastCastResult.entityHit,
                                 bedAttachPos.x, bedAttachPos.y, bedAttachPos.z,
                                 lastCastResult.endCoords.x, lastCastResult.endCoords.y, lastCastResult.endCoords.z,
-                                ropeLength, false, false, nil, nil)
-                            
+                                ropeLength,
+                                false,
+                                false,
+                                nil,
+                                nil
+                            )
+
+                            SetVehicleSteeringAngle(lastCastResult.entityHit, 0.0)
+
                             -- Network the entities, force control, and get their net ids
                             local towingCarNetId = networkEntity(lastCastResult.entityHit, true)
                             logger:debug("ScoopTowTruck.GetHookThread = %s", towingCarNetId)
@@ -847,6 +900,14 @@ end
                                 }
                             })
 
+                            towTruck:SetTowingCar(towingCarNetId)
+                            towTruck.towingCarAttachOffset = GetOffsetFromEntityGivenWorldCoords(
+                                lastCastResult.entityHit,
+                                lastCastResult.endCoords.x,
+                                lastCastResult.endCoords.y,
+                                lastCastResult.endCoords.z
+                            )
+
                             Citizen.CreateThread(function()
                                 while towTruck:GetTowingCarNetId() ~= -1 do
                                     if not NetworkHasControlOfNetworkId(towingCarNetId) then
@@ -856,10 +917,6 @@ end
                                     Citizen.Wait(0)
                                 end
                             end)
-                                
-                            -- Set the towing car data
-                            towTruck:SetTowingCar(towingCarNetId)
-                            towTruck.towingCarAttachOffset = GetOffsetFromEntityGivenWorldCoords(lastCastResult.entityHit, lastCastResult.endCoords.x, lastCastResult.endCoords.y, lastCastResult.endCoords.z)
     
                         end
                     end
@@ -869,7 +926,6 @@ end
             end)
     
             while castThread and processThread do
-                -- FreezeEntityPosition(towTruck.truckHandle, true)
                 Citizen.Wait(100)
             end
     
@@ -1009,7 +1065,7 @@ end
         end
 
         Entity(self.truckHandle).state:set("DevJacob:Towing:TowingCar", car, true)
-        self.towingCarHandle = ternary(nil == car, nil, NetworkGetNetworkIdFromEntity(car))
+        self.towingCarHandle = ternary(nil == car, nil, NetworkGetEntityFromNetworkId(car))
     end
 
     function ScoopTowTruck:IsCarHooked()
